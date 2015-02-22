@@ -30,6 +30,12 @@
             <artifactId>httpasyncclient</artifactId>
             <version>LATEST</version>
         </dependency>
+        
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>LATEST</version>
+        </dependency>
 
     </dependencies>
 

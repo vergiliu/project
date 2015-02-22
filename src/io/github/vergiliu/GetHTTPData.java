@@ -1,9 +1,13 @@
 package io.github.vergiliu;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.config.ConnectionConfig;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.nio.DefaultHttpClientIODispatch;
 import org.apache.http.impl.nio.pool.BasicNIOConnPool;
 import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
@@ -18,7 +22,9 @@ import org.apache.http.protocol.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.util.concurrent.CountDownLatch;
 
@@ -26,7 +32,7 @@ public class GetHTTPData {
     static Logger theLogger = LoggerFactory.getLogger(GetHTTPData.class.getName());
     public GetHTTPData() {
     }
-    public void doAllStuff() throws InterruptedException, IOException {
+    public void asyncHttpRequest() throws InterruptedException, IOException {
         // Create HTTP protocol processing chain
         HttpProcessor httpProcessor = HttpProcessorBuilder.create()
                 // Use standard client-side protocol interceptors
@@ -48,6 +54,7 @@ public class GetHTTPData {
         // Limit total number of connections to just two
         pool.setDefaultMaxPerRoute(2);
         pool.setMaxTotal(2);
+        
         // Run the I/O reactor in a separate thread
         Thread t = new Thread(new Runnable() {
 
@@ -71,8 +78,9 @@ public class GetHTTPData {
         // Execute HTTP GETs to the following hosts and
         HttpHost[] targets = new HttpHost[] {
                 new HttpHost("www.apache.org", 80, "http"),
-                new HttpHost("www.verisign.com", 443, "https"),
-                new HttpHost("www.google.com", 80, "http")
+                new HttpHost("www.verisign.com", 443, "https")
+//                new HttpHost("http://query.yahooapis.com/v1/public/yql?q=select%20item.condition%20from%20weather.forecast%20where%20woeid%20%3D%202487889&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys", 80, "http"),
+//                new HttpHost("http://query.yahooapis.com/v1/public/yql?q=select%20item.condition%20from%20weather.forecast%20where%20woeid%20%3D%202487889&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys", 80, "http")
         };
         final CountDownLatch latch = new CountDownLatch(targets.length);
         for (final HttpHost target: targets) {
@@ -90,6 +98,11 @@ public class GetHTTPData {
                             latch.countDown();
                             System.out.println(target + "->" + response.getStatusLine());
                             theLogger.info("content {}", response);
+                            try {
+                                analyzeContent(response);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
 
                         public void failed(final Exception ex) {
@@ -108,6 +121,47 @@ public class GetHTTPData {
         System.out.println("Shutting down I/O reactor");
         ioReactor.shutdown();
         System.out.println("Done");
+        
+    }
+
+    private void analyzeContent(HttpResponse response) throws IOException {
+
+        theLogger.info("got{}", response);
+    }
+    
+    public void httpRequest() {
+        HttpClient httpClient = new DefaultHttpClient();
+        try {
+            HttpGet httpGetRequest = new HttpGet("http://query.yahooapis.com/v1/public/yql?q=select%20item.condition%20from%20weather.forecast%20where%20woeid%20%3D%202487889&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys");
+            HttpResponse httpResponse = httpClient.execute(httpGetRequest);
+
+            System.out.println("----------------------------------------");
+            System.out.println(httpResponse.getStatusLine());
+            System.out.println("----------------------------------------");
+
+            HttpEntity entity = httpResponse.getEntity();
+
+            byte[] buffer = new byte[1024];
+            if (entity != null) {
+                InputStream inputStream = entity.getContent();
+                try {
+                    int bytesRead = 0;
+                    BufferedInputStream bis = new BufferedInputStream(inputStream);
+                    while ((bytesRead = bis.read(buffer)) != -1) {
+                        String chunk = new String(buffer, 0, bytesRead);
+                        System.out.println(chunk);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    try { inputStream.close(); } catch (Exception ignore) {}
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
         
     }
 }

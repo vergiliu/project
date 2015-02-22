@@ -17,11 +17,10 @@ public class App
     
     public static void main( String[] args )
     {
-        System.out.println( "Hello World!" );
-        
         GetHTTPData myObject = new GetHTTPData();
         try {
-            myObject.doAllStuff();
+            myObject.asyncHttpRequest();
+            myObject.httpRequest();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (IOException e) {
