@@ -23,8 +23,8 @@ import java.io.InterruptedIOException;
 import java.util.concurrent.CountDownLatch;
 
 public class GetHTTPData {
+    static Logger theLogger = LoggerFactory.getLogger(GetHTTPData.class.getName());
     public GetHTTPData() {
-        Logger theLogger = LoggerFactory.getLogger(this.getClass().getName());
     }
     public void doAllStuff() throws InterruptedException, IOException {
         // Create HTTP protocol processing chain
@@ -76,7 +76,7 @@ public class GetHTTPData {
         };
         final CountDownLatch latch = new CountDownLatch(targets.length);
         for (final HttpHost target: targets) {
-            BasicHttpRequest request = new BasicHttpRequest("GET", "/");
+            final BasicHttpRequest request = new BasicHttpRequest("GET", "/");
             HttpCoreContext coreContext = HttpCoreContext.create();
             requester.execute(
                     new BasicAsyncRequestProducer(target, request),
@@ -89,6 +89,7 @@ public class GetHTTPData {
                         public void completed(final HttpResponse response) {
                             latch.countDown();
                             System.out.println(target + "->" + response.getStatusLine());
+                            theLogger.info("content {}", response);
                         }
 
                         public void failed(final Exception ex) {

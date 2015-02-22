@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class App 
 {
-    static Logger theLogger = LoggerFactory.getLogger("App");
+    static Logger theLogger = LoggerFactory.getLogger(App.class.getName());
     
     public static void main( String[] args )
     {
