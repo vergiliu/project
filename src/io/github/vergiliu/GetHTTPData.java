@@ -1,5 +1,7 @@
 package io.github.vergiliu;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -135,21 +137,31 @@ public class GetHTTPData {
             HttpGet httpGetRequest = new HttpGet("http://query.yahooapis.com/v1/public/yql?q=select%20item.condition%20from%20weather.forecast%20where%20woeid%20%3D%202487889&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys");
             HttpResponse httpResponse = httpClient.execute(httpGetRequest);
 
-            System.out.println("----------------------------------------");
             System.out.println(httpResponse.getStatusLine());
-            System.out.println("----------------------------------------");
 
             HttpEntity entity = httpResponse.getEntity();
-
+            
+            // create Jackson instance
+            ObjectMapper mapper = new ObjectMapper();
+            
+            
             byte[] buffer = new byte[1024];
+            InputStream inputStream = null;
+            
             if (entity != null) {
-                InputStream inputStream = entity.getContent();
                 try {
                     int bytesRead = 0;
+                    inputStream = entity.getContent();
                     BufferedInputStream bis = new BufferedInputStream(inputStream);
                     while ((bytesRead = bis.read(buffer)) != -1) {
                         String chunk = new String(buffer, 0, bytesRead);
-                        System.out.println(chunk);
+//                        System.out.println(chunk);
+                        
+                        JsonNode rootNode = mapper.readTree(chunk);
+                        Long temperature = rootNode.findPath("temp").asLong();
+                        String conditions = rootNode.findPath("text").asText();
+                        theLogger.info("Currently is {} @ {}", temperature, conditions);
+
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -157,6 +169,9 @@ public class GetHTTPData {
                     try { inputStream.close(); } catch (Exception ignore) {}
                 }
             }
+            
+            
+
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
