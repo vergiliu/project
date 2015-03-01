@@ -9,7 +9,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.config.ConnectionConfig;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.nio.DefaultHttpClientIODispatch;
 import org.apache.http.impl.nio.pool.BasicNIOConnPool;
 import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
@@ -132,7 +132,7 @@ public class GetHTTPData {
     }
     
     public void httpRequest() {
-        HttpClient httpClient = new DefaultHttpClient();
+        HttpClient httpClient = HttpClientBuilder.create().build();
         try {
             HttpGet httpGetRequest = new HttpGet("http://query.yahooapis.com/v1/public/yql?q=select%20item.condition%20from%20weather.forecast%20where%20woeid%20%3D%202487889&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys");
             HttpResponse httpResponse = httpClient.execute(httpGetRequest);
@@ -170,13 +170,9 @@ public class GetHTTPData {
                 }
             }
             
-            
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            httpClient.getConnectionManager().shutdown();
-        }
+
+        } catch (Exception e) { e.printStackTrace();  }
         
     }
 }

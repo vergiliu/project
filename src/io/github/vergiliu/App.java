@@ -3,6 +3,8 @@ package io.github.vergiliu;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.IOException;
 
@@ -11,12 +13,17 @@ import java.io.IOException;
  *
  */
 
+@SpringBootApplication
 public class App 
 {
     static Logger theLogger = LoggerFactory.getLogger(App.class.getName());
     
     public static void main( String[] args )
     {
+        SpringApplication.run(App.class, args);
+        // restful sample service Spring Boot
+
+        // get http client from Apache
         GetHTTPData myObject = new GetHTTPData();
         try {
             myObject.asyncHttpRequest();
