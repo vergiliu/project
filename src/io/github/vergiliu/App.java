@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 
@@ -13,6 +14,7 @@ import java.io.IOException;
  *
  */
 
+@Configuration
 @SpringBootApplication
 public class App 
 {
